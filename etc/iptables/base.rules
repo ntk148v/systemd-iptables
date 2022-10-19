@@ -1,0 +1,69 @@
+*filter
+# Reset counters
+:INPUT ACCEPT [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0] :DOCKER-USER - [0:0]
+
+# Flush
+-F INPUT
+-F OUTPUT
+-F DOCKER-USER
+
+#########
+# INPUT #
+#########
+# Accept on localhost
+-A INPUT -i lo -m comment --comment "Default: Accept loopback" -j ACCEPT
+# Accept on Docker bridge
+-A INPUT -i br+ -m comment --comment "Default: Accept bridge networks" -j ACCEPT
+-A INPUT -i docker0 -m comment --comment "Default: Accept docker0" -j ACCEPT
+# Allow established sessions to receive traffic
+-A INPUT -m state --state RELATED,ESTABLISHED -m comment --comment "Default: Accept RELATED, ESTABLISHED connections" -j ACCEPT
+-A INPUT -p icmp -m comment --comment "Default: Accept ICMP" -j ACCEPT
+
+# Insert your INPUT ACCEPT rules here
+# For example:
+# Open https port only for 1 ip:
+# -A INPUT -s 10.1.1.1/32 -p tcp -m tcp --dport 443 -j ACCEPT
+
+# By default reject all packets and leave a logging
+-A INPUT -m comment --comment "Default: Log INPUT dropped packets" -j LOG --log-prefix "iptables INPUT DROP " --log-level 7
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+
+##########
+# OUTPUT #
+##########
+# Accept on localhost
+-A OUTPUT -o lo -j ACCEPT
+# Accept Docker networks
+-A OUTPUT -o br+ -m comment --comment "Default: Accept bridge networks" -j ACCEPT
+-A OUTPUT -o docker0 -m comment --comment "Default: Accept docker0" -j ACCEPT
+# Allow established sessions to receive traffic
+-A OUTPUT -m state --state RELATED,ESTABLISHED -m comment --comment "Default: Accept RELATED, ESTABLISHED connections" -j ACCEPT
+
+# Insert your OUTPUT ACCEPT rules here
+
+# By default reject all packets and leave a logging
+-A OUTPUT -m comment --comment "Default: Log OUTPUT dropped packets" -j LOG --log-prefix "iptables OUTPUT DROP " --log-level 7
+-A OUTPUT -j REJECT --reject-with icmp-host-prohibited
+
+###############
+# DOCKER-USER #
+###############
+# Change your external interface here!
+-A DOCKER-USER -i extinf -m conntrack --ctstate RELATED,ESTABLISHED  -m comment --comment "Default: Accept RELATED, ESTABLISHED connections" -j RETURN
+
+# Insert your DOCKER-USER ACCEPT rules here
+# Note that you have to use conntrack and ctorigdstport due to NAT.
+# For example:
+# Allow all on http
+# -A DOCKER-USER -i ens192 -p tcp -m tcp -m conntrack --ctorigdstport 80 -j RETURN
+
+# By default reject all packets
+-A OUTPUT -m comment --comment "Default: Log DROP-USER dropped packets in external inteface" -j LOG --log-prefix "iptables DOCKER-USER DROP in external interface" --log-level 7
+-A DOCKER-USER -i extinf -j REJECT
+
+-A DOCKER-USER -j RETURN
+
+## Commit
+COMMIT

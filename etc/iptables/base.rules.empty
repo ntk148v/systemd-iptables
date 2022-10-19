@@ -1,0 +1,14 @@
+*filter
+
+# Reset counters
+:INPUT ACCEPT [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+:DOCKER-USER - [0:0]
+
+# Flush
+-F INPUT
+-F OUTPUT
+-F DOCKER-USER
+
+COMMIT
