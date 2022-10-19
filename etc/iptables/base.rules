@@ -51,13 +51,14 @@
 # DOCKER-USER #
 ###############
 # Change your external interface here!
--A DOCKER-USER -i extinf -m conntrack --ctstate RELATED,ESTABLISHED  -m comment --comment "Default: Accept RELATED, ESTABLISHED connections" -j RETURN
+-A DOCKER-USER -i extinf -m state --state established,related -m comment --comment "Default: Accept RELATED, ESTABLISHED connections" -j ACCEPT
+-A DOCKER-USER -i extinf -m conntrack --ctstate RELATED,ESTABLISHED -m comment --comment "Default: Accept RELATED, ESTABLISHED connections" -j ACCEPT
 
 # Insert your DOCKER-USER ACCEPT rules here
 # Note that you have to use conntrack and ctorigdstport due to NAT.
 # For example:
 # Allow all on http
-# -A DOCKER-USER -i ens192 -p tcp -m tcp -m conntrack --ctorigdstport 80 -j RETURN
+# -A DOCKER-USER -i ens192 -p tcp -m tcp -m conntrack --ctorigdstport 80 -j ACCEPT
 
 # By default reject all packets
 -A OUTPUT -m comment --comment "Default: Log DROP-USER dropped packets in external inteface" -j LOG --log-prefix "iptables DOCKER-USER DROP in external interface" --log-level 7
