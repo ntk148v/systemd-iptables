@@ -41,7 +41,7 @@
 - On the Linux, run as root:
 
 ```shell
-git clone https://github.com/ntk148v/systemd-iptables
+git clone
 cd systemd-iptables
 # Edit the rules in etc/iptables/base.rules as needed.
 # and install the service
